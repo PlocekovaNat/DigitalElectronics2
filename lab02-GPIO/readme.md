@@ -35,10 +35,10 @@ The purpose of this laboratory exercise is to learn how to create your own libra
    | **Data type** | **Number of bits** | **Range** | **Description** |
    | :-: | :-: | :-: | :-- |
    | `uint8_t`  | 8 | 0, 1, ..., 255 | Unsigned 8-bit integer |
-   | `int8_t`   | 8 | -128, ..., 127 | Signed 8-bit integer |
+   | `int8_t`   | 8 | -128,..., 127 | Signed 8-bit integer |
    | `uint16_t` | 16 | 0, 1, ..., 65535 | Unsigned 16-bit integer |
    | `int16_t`  | 16 | -32768, ..., 35767 | Signed 16-bit integer |
    | `float`    | 32 | -3.4e+38, ..., 3.4e+38 | Single-precision floating-point |
-   | `void`     | 0 | 0 | Represents no value or no output in functions |
+   | `void`     | 0 | depends on size of the system(16,32,64) | Represents no value or no output in functions |
 
 <a name="part1"></a>
