@@ -1,29 +1,10 @@
-# Lab 1: YOUR_FIRSTNAME LASTNAME
+# Lab 1: Natalia Plocekova
 
 ### Morse code
 
 1. Listing of C code which repeats one "dot" and one "comma" (BTW, in Morse code it is letter `A`) on a LED. Always use syntax highlighting, meaningful comments, and follow C guidelines:
 
 ```c
-
-/* Defines -----------------------------------------------------------*/
-#define LED_RED PB0   // PB5 is AVR pin where red LED is connected
-
-#define SHORT_DELAY 250 // Delay in miliseconds representing dot
-#define LONG_DELAY 750 // Delay in milliseconds representing dash
-
-#ifndef F_CPU
-# define F_CPU 16000000 // CPU frequency in Hz required for delay funcs
-#endif
-
-#include <avr/io.h>     // AVR device-specific IO definitions
-#include <util/delay.h> // Functions for busy-wait delay loops
-
-#include "Arduino.h"
-
-#define PB0 8          // In Arduino world, PB0 is called "8"
-
-
 int main(void)
 {
     // Set pin where on-board LED is connected as output
@@ -31,6 +12,9 @@ int main(void)
 
     while (1)
     {
+        int SHORT_DELAY = 250;
+        int LONG_DELAY = 750;
+        
         // Generate a lettre `A` Morse code
         
         // Turn ON/OFF on-board LED
