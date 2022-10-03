@@ -9,23 +9,21 @@ int main(void)
 {
     // Set pin where on-board LED is connected as output
     pinMode(LED_RED, OUTPUT);
+    int SHORT_DELAY = 250;
+    int LONG_DELAY = 750;
 
     while (1)
     {
-        int SHORT_DELAY = 250;
-        int LONG_DELAY = 750;
-        
-        // Generate a lettre `A` Morse code
-        
         // Turn ON/OFF on-board LED
         digitalWrite(LED_RED, led_value);
-
+        
+        // Generate a lettre `A` Morse code
         led_value = LOW;        // LED is connected for LOW mode - turn on LED
         _delay_ms(SHORT_DELAY); // dot
         led_value = HIGH;       // turn off LED
         _delay_ms(SHORT_DELAY);
         led_value = LOW;
-        _delay_ms(LONG_DELAY);  // dash
+        _delay_ms(LONG_DELAY);  // comma(dash)
         led_value = HIGH;
         _delay_ms(LONG_DELAY);
            
