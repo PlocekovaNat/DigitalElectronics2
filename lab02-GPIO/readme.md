@@ -39,6 +39,6 @@ The purpose of this laboratory exercise is to learn how to create your own libra
    | `uint16_t` | 16 |  | Unsigned 16-bit integer |
    | `int16_t`  | 16 |  | Signed 16-bit integer |
    | `float`    | 32 | -3.4e+38, ..., 3.4e+38 | Single-precision floating-point |
-   | `void`     |  |  |  |
+   | `void`     | 0 | 0 | Represents no value or no output in functions |
 
 <a name="part1"></a>
