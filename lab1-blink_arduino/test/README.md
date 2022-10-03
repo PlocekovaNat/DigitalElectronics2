@@ -11,6 +11,7 @@ int main(void)
     pinMode(LED_RED, OUTPUT);
     int SHORT_DELAY = 250;
     int LONG_DELAY = 750;
+    uint8_t led_value; // Local variable to keep LED status
 
     while (1)
     {
