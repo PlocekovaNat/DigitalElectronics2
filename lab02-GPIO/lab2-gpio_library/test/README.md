@@ -25,4 +25,4 @@
 
 3. Scheme of traffic light application with one red/yellow/green light for cars, one red/green light for pedestrians, and one push button. Connect AVR device, LEDs, resistors, push button (for pedestrians), and supply voltage. The image can be drawn on a computer or by hand. Always name all components and their values!
 
-   ![your figure]()
+  ![Snímka obrazovky 2022-10-09 o 18 17 56](https://user-images.githubusercontent.com/99497162/194767825-22fc2600-91d7-44b2-9857-fa1ce327d203.png)
