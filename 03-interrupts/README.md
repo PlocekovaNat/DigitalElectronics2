@@ -12,8 +12,8 @@ Consider an n-bit number that we increment based on the clock signal. If we reac
 
    | **Module** | **Number of bits** | **1** | **8** | **32** | **64** | **128** | **256** | **1024** |
    | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: | :-: |
-   | Timer/Counter0 | 8  | 16u | 128u | -- | | -- | | |
-   | Timer/Counter1 | 16 |     |      | -- | | -- | | |
-   | Timer/Counter2 | 8  |     |      |    | |    | | |
+   | Timer/Counter0 | 8  | 16u | 128u | -- | 1m | -- | 4.1m | 16.4m |
+   | Timer/Counter1 | 16 | 4.1m| 32.8m | -- | 262.1m | -- | 1.49 | 4.194 |
+   | Timer/Counter2 | 8  | 16u | 128u | 512u | 1m | 2m | 4.1m | 16.4m |
 
 <a name="part1"></a>
