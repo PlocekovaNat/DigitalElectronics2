@@ -5,11 +5,11 @@
    | **LCD signal(s)** | **AVR pin(s)** | **Description** |
    | :-: | :-: | :-- |
    | RS | PB0 | Register selection signal. Selection between Instruction register (RS=0) and Data register (RS=1) |
-   | R/W |  |  |
-   | E |  |  |
+   | R/W | Ground |  |
+   | E | PB1 |  |
    | D[3:0] |  |  |
-   | D[7:4] |  |  |
-   | K |  |  |
+   | D[7:4] | PB[7:4] |  |
+   | K | Q1 |  |
 
 2. What is the ASCII table? What are the codes/values for uppercase letters `A` to `Z`, lowercase letters `a` to `z`, and numbers `0` to `9` in this table?
 
