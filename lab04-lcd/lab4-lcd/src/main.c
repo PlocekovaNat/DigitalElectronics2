@@ -43,13 +43,60 @@
  **********************************************************************/
 int main(void)
 {
+    uint8_t customChar[16] = {
+        0b00111,
+        0b01110,
+        0b11100,
+        0b11000,
+        0b11100,
+        0b01110,
+        0b00111,
+        0b00011,
+        //Second charakter
+        0b00111,
+        0b01110,
+        0b11100,
+        0b11000,
+        0b11100,
+        0b01110,
+        0b00111,
+        0b00011
+    };
+
     // Initialize display
-    lcd_init(LCD_DISP_ON_CURSOR_BLINK);
+    lcd_init(LCD_DISP_ON_CURSOR);
+
+    lcd_command(1<<LCD_CGRAM);       // Set addressing to CGRAM (Character Generator RAM)
+                                     // ie to individual lines of character patterns
+    for (uint8_t i = 0; i < 16; i++)  // Copy new character patterns line by line to CGRAM
+        lcd_data(customChar[i]);
+    lcd_command(1<<LCD_DDRAM);       // Set addressing back to DDRAM (Display Data RAM)
+                                     // ie to character codes
+    lcd_gotoxy(13,1);
+    // Display symbol with Character code 0
+    lcd_putc(0x00);
+    lcd_putc(0x01);
+
 
     // Put string(s) on LCD screen
-    lcd_gotoxy(6, 1);
-    lcd_puts("LCD Test");
-    lcd_putc('!');
+    lcd_gotoxy(1, 0);
+    lcd_puts("00:00:.0");
+
+    lcd_gotoxy(11, 0);
+    lcd_putc('a');
+
+    lcd_gotoxy(1, 1);
+    lcd_putc('b');
+
+    lcd_gotoxy(11, 1);
+    lcd_putc('c');
+
+    // Set back light to PB2
+    GPIO_mode_output(&DDRB,PB2);
+    GPIO_write_high(&PORTB, PB2);
+
+    TIM2_overflow_16ms();
+    TIM2_overflow_interrupt_enable();
 
     // Configuration of 8-bit Timer/Counter2 for Stopwatch update
     // Set the overflow prescaler to 16 ms and enable interrupt
@@ -80,6 +127,8 @@ ISR(TIMER2_OVF_vect)
 {
     static uint8_t no_of_overflows = 0;
     static uint8_t tenths = 0;  // Tenths of a second
+    static uint8_t secs = 0;  // Tenths of a second
+    static uint8_t mins = 0;  // Tenths of a second
     char string[2];             // String for converted numbers by itoa()
 
     no_of_overflows++;
@@ -89,8 +138,34 @@ ISR(TIMER2_OVF_vect)
         no_of_overflows = 0;
 
         // Count tenth of seconds 0, 1, ..., 9, 0, 1, ...
+        tenths++;
+        if (tenths > 9)
+        {
+            tenths = 0;
 
+            //Add seconds to stopwatch
+            secs++;
+            if (secs > 59)
+            {
+                secs = 0;
+                mins++;
 
+                //Display minutes
+                itoa(mins, string, 10);  // Convert decimal value to string
+                lcd_gotoxy(1, 0);
+                if (mins < 10)
+                    lcd_putc('0');
+                lcd_puts(string);
+            }
+            //Display seconds
+            itoa(secs, string, 10);  // Convert decimal value to string
+            lcd_gotoxy(4, 0);
+            if (secs < 10)
+               lcd_putc('0');
+            lcd_puts(string);
+            
+        }
+        //Show tenths on LED screen
         itoa(tenths, string, 10);  // Convert decimal value to string
         // Display "00:00.tenths"
         lcd_gotoxy(7, 0);
