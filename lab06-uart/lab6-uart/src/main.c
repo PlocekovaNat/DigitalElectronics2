@@ -75,6 +75,8 @@ ISR(TIMER1_OVF_vect)
     // Transmit UART string(s)
     //uart_puts("Paris\r\n");
     uint8_t value;
+    uint8_t i = 0;
+    uint8_t even_parity = 0;
     char string[8];  // String for converted numbers by itoa()
 
     value = uart_getc();
@@ -92,5 +94,12 @@ ISR(TIMER1_OVF_vect)
         itoa(value,string, 2);
         uart_puts(string);
         uart_puts("\r\n");
+
+        // Cycle through all bits and calculate Even parity
+        for (i = 0; i < 8; i++) {
+                    // XOR  Mask LSB only
+            even_parity ^= (value & 0x01);
+            value >>= 1;  // Shift all bits to right
+        }
     }
 }
