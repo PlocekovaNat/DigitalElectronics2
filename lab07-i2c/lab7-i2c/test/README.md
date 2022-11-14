@@ -26,3 +26,5 @@ Consider an application for temperature and humidity measurements. Use sensor DH
 06h
    ![Flowchart](https://github.com/PlocekovaNat/DigitalElectronics2/blob/main/lab07-i2c/images/2_Flowchart.jpeg)
    
+   <img src="https://github.com/PlocekovaNat/DigitalElectronics2/blob/main/lab07-i2c/images/2_Flowchart.jpeg" width=50% height=50%>
+   
