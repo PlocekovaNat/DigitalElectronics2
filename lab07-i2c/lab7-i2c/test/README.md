@@ -23,6 +23,5 @@
 Consider an application for temperature and humidity measurements. Use sensor DHT12, real time clock DS3231, LCD, and one LED. Every minute, the temperature, humidity, and time is requested from Slave devices and values are displayed on LCD screen. When the temperature is above the threshold, turn on the LED.
 
 3. Draw a flowchart of `TIMER1_OVF_vect` (which overflows every 1&nbsp;sec) for such Meteo station. The image can be drawn on a computer or by hand. Use clear description of individual algorithm steps.
-06h 
    <img src="https://github.com/PlocekovaNat/DigitalElectronics2/blob/main/lab07-i2c/images/2_Flowchart.jpeg" width=70% height=70%>
    
