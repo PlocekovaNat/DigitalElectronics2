@@ -26,5 +26,6 @@
 
 3. Draw a flowchart of function `void burst_c(uint8_t number)` which generates a variable number of short pulses at output pin. Let the pulse width be the shortest one. The image can be drawn on a computer or by hand. Use clear descriptions of the individual steps of the algorithms.
 
-   ![your figure]()
+   <img src="https://github.com/PlocekovaNat/DigitalElectronics2/blob/main/lab08-asm/Flowchart.jpeg" width=70% height=70%>
+   
 
