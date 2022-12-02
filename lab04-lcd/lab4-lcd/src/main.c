@@ -24,6 +24,10 @@
  *     A+K  - Back-light enabled/disabled by PB2
  * 
  **********************************************************************/
+/* Define pins -------------------------------------------------------*/
+#define Rx PC0 
+#define Ry PC1 
+#define SW PD2 
 
 /* Includes ----------------------------------------------------------*/
 #include <avr/io.h>         // AVR device-specific IO definitions
@@ -33,6 +37,11 @@
 #include <lcd.h>            // Peter Fleury's LCD library
 #include <stdlib.h>         // C library. Needed for number conversions
 
+/* Arduino world -----------------------------------------------------*/
+#include "Arduino.h"
+#define PC0 A0
+#define PC1 A1
+#define PD2 2
 
 /* Function definitions ----------------------------------------------*/
 /**********************************************************************
@@ -41,66 +50,33 @@
  *           Timer/Counter2 overflows.
  * Returns:  none
  **********************************************************************/
+
 int main(void)
 {
-    uint8_t customChar[16] = {
-        0b00111,
-        0b01110,
-        0b11100,
-        0b11000,
-        0b11100,
-        0b01110,
-        0b00111,
-        0b00011,
-        //Second charakter
-        0b00111,
-        0b01110,
-        0b11100,
-        0b11000,
-        0b11100,
-        0b01110,
-        0b00111,
-        0b00011
-    };
-
-    // Initialize display
+    /* -------------------------Initialize display -----------------------------*/
     lcd_init(LCD_DISP_ON_CURSOR);
-
-    lcd_command(1<<LCD_CGRAM);       // Set addressing to CGRAM (Character Generator RAM)
-                                     // ie to individual lines of character patterns
-    for (uint8_t i = 0; i < 16; i++)  // Copy new character patterns line by line to CGRAM
-        lcd_data(customChar[i]);
-    lcd_command(1<<LCD_DDRAM);       // Set addressing back to DDRAM (Display Data RAM)
-                                     // ie to character codes
-    lcd_gotoxy(13,1);
-    // Display symbol with Character code 0
-    lcd_putc(0x00);
-    lcd_putc(0x01);
-
-
     // Put string(s) on LCD screen
-    lcd_gotoxy(1, 0);
-    lcd_puts("00:00:.0");
-
-    lcd_gotoxy(11, 0);
+    lcd_gotoxy(5, 0);
     lcd_putc('a');
 
-    lcd_gotoxy(1, 1);
-    lcd_putc('b');
+    
+    /* -----------------------------Joystick -----------------------------------*/
+    // Configure Analog-to-Digital Convertion unit
+    // Select ADC voltage reference to "AVcc with external capacitor at AREF pin"
+    ADMUX = ADMUX |  (1<<REFS0);
+    // Select input channel ADC0 (voltage divider pin)
+    ADMUX = ADMUX & ~(1<<MUX3 | 1<<MUX2 | 1<<MUX1 | 1<<MUX0);
+    // Enable ADC module
+    ADCSRA |= (1<<ADEN); // into the variable ADCSRA counting a new value
+    // Enable conversion complete interrupt
+    ADCSRA |= (1<<ADIE);
+    // Set clock prescaler to 128
+    ADCSRA |= (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 
-    lcd_gotoxy(11, 1);
-    lcd_putc('c');
-
-    // Set back light to PB2
-    GPIO_mode_output(&DDRB,PB2);
-    GPIO_write_high(&PORTB, PB2);
-
-    TIM2_overflow_16ms();
-    TIM2_overflow_interrupt_enable();
-
-    // Configuration of 8-bit Timer/Counter2 for Stopwatch update
-    // Set the overflow prescaler to 16 ms and enable interrupt
-
+    // Configure 16-bit Timer/Counter1 to start ADC conversion
+    // Set prescaler to 33 ms and enable overflow interrupt
+    TIM1_overflow_33ms();
+    TIM1_overflow_interrupt_enable();
 
     // Enables interrupts by setting the global interrupt mask
     sei();
@@ -114,62 +90,74 @@ int main(void)
 
     // Will never reach this
     return 0;
-}
 
+}
 
 /* Interrupt service routines ----------------------------------------*/
 /**********************************************************************
- * Function: Timer/Counter2 overflow interrupt
- * Purpose:  Update the stopwatch on LCD screen every sixth overflow,
- *           ie approximately every 100 ms (6 x 16 ms = 100 ms).
+ * Function: Timer/Counter1 overflow interrupt
+ * Purpose:  Use single conversion mode and start conversion every 100 ms.
  **********************************************************************/
-ISR(TIMER2_OVF_vect)
+ISR(TIMER1_OVF_vect)
 {
-    static uint8_t no_of_overflows = 0;
-    static uint8_t tenths = 0;  // Tenths of a second
-    static uint8_t secs = 0;  // Tenths of a second
-    static uint8_t mins = 0;  // Tenths of a second
-    char string[2];             // String for converted numbers by itoa()
+    // Start ADC conversion
+    ADCSRA |= (1<<ADSC);
+}
 
-    no_of_overflows++;
-    if (no_of_overflows >= 6)
+/**********************************************************************
+ * Function: ADC complete interrupt
+ * Purpose:  Display converted value on LCD screen.
+ **********************************************************************/
+ISR(ADC_vect)
+{
+    uint16_t value;
+    char string[4];  // String for converted numbers by itoa()
+
+    // Read converted value
+    // Note that, register pair ADCH and ADCL can be read as a 16-bit value ADC
+    value = ADC;
+    // Convert "value" to "string" and display it
+    itoa(value, string, 10);
+    lcd_gotoxy(8, 0);
+    lcd_puts("    ");
+    lcd_gotoxy(8, 0);
+    lcd_puts(string);
+
+    switch(value)
     {
-        // Do this every 6 x 16 ms = 100 ms
-        no_of_overflows = 0;
-
-        // Count tenth of seconds 0, 1, ..., 9, 0, 1, ...
-        tenths++;
-        if (tenths > 9)
+        case 0:
         {
-            tenths = 0;
-
-            //Add seconds to stopwatch
-            secs++;
-            if (secs > 59)
-            {
-                secs = 0;
-                mins++;
-
-                //Display minutes
-                itoa(mins, string, 10);  // Convert decimal value to string
-                lcd_gotoxy(1, 0);
-                if (mins < 10)
-                    lcd_putc('0');
-                lcd_puts(string);
-            }
-            //Display seconds
-            itoa(secs, string, 10);  // Convert decimal value to string
-            lcd_gotoxy(4, 0);
-            if (secs < 10)
-               lcd_putc('0');
-            lcd_puts(string);
-            
+            lcd_gotoxy(8, 1);
+            lcd_puts("      ");
+            lcd_gotoxy(8, 1);
+            lcd_puts("none");
         }
-        //Show tenths on LED screen
-        itoa(tenths, string, 10);  // Convert decimal value to string
-        // Display "00:00.tenths"
-        lcd_gotoxy(7, 0);
-        lcd_puts(string);
+        break;
+        case 50 ... 150:
+        {
+            lcd_gotoxy(8, 1);
+            lcd_puts("      ");
+            lcd_gotoxy(8, 1);
+            lcd_puts("select");
+        }
+        break;
+        case 151 ... 250:
+        {
+            lcd_gotoxy(8, 1);
+            lcd_puts("      ");
+            lcd_gotoxy(8, 1);
+            lcd_puts("right");
+        }
+        break;
+        case 251 ... 500:
+        {
+            lcd_gotoxy(8, 1);
+            lcd_puts("      ");
+            lcd_gotoxy(8, 1);
+            lcd_puts("left");
+        }
+        break;
+        default:
+        break;
     }
-    // Else do nothing and exit the ISR
 }
