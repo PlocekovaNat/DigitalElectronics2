@@ -72,7 +72,12 @@ int main(void)
  **********************************************************************/
 ISR(TIMER1_OVF_vect)
 {
-    
+    static uint8_t no_of_overflows = 0;
+
+    no_of_overflows++;
+    if (no_of_overflows >= 30) {
+        no_of_overflows = 0;
+    }
 }
 
 
