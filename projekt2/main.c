@@ -77,6 +77,10 @@ ISR(TIMER1_OVF_vect)
     no_of_overflows++;
     if (no_of_overflows >= 10) {
         no_of_overflows = 0;
+        for(pos=0;pos<=180;pos++){
+            Myservo.write(pos);
+            delay(15);
+}
     }
 }
 
