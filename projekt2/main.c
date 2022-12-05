@@ -47,7 +47,7 @@ int main(void)
     /* -----------------------------Timer for SERVO 1-----------------------------------*/
     // Configure 16-bit Timer/Counter1 to start ADC conversion
     // Set prescaler to 33 ms and enable overflow interrupt
-    TIM1_overflow_33ms();
+    TIM1_overflow_1s();
     TIM1_overflow_interrupt_enable();
 
     // Enables interrupts by setting the global interrupt mask
@@ -75,7 +75,7 @@ ISR(TIMER1_OVF_vect)
     static uint8_t no_of_overflows = 0;
 
     no_of_overflows++;
-    if (no_of_overflows >= 30) {
+    if (no_of_overflows >= 10) {
         no_of_overflows = 0;
     }
 }
