@@ -35,7 +35,7 @@
  * Returns:  none
  **********************************************************************/
 // Define global variables for position
-uint16_t ch = 1; 
+uint16_t pos = 0;
 
 int main(void)
 {
