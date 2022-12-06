@@ -35,7 +35,7 @@
  * Returns:  none
  **********************************************************************/
 // Define global variables for position
-uint16_t pos = 0;
+uint8_t no_of_overflows = 0;
 
 int main(void)
 {
@@ -53,14 +53,16 @@ int main(void)
     TIM0_overflow_16ms();
     TIM0_overflow_interrupt_enable();
 
-    TIM2_overflow_16ms();
+
+    TIM2_overflow_1ms();
     TIM2_overflow_interrupt_enable();
 
 
 
     // Enables interrupts by setting the global interrupt mask
     sei();
-       
+
+    EIMSK |= (1 << INT0);                   // External interrupt mask register - enable INT0 bit   
 
     // Infinite loop
     while (1)
@@ -91,29 +93,34 @@ ISR(TIMER1_OVF_vect)
 
 }
 }
-
 */
+/*
 ISR(TIMER0_OVF_vect)
 {
-      static uint8_t no_of_overflows = 0;
-
-    no_of_overflows++;
-    if (no_of_overflows >= 100) {
-        no_of_overflows = 0;
-        GPIO_mode_output(&DDRB, servo1);
-        GPIO_write_high(&PORTB, servo1);
-        _delay_ms(5); // Wait 1 ms
-        GPIO_write_low(&PORTB, servo2); 
-    }  
-}
+    //GPIO_mode_output(&DDRB, servo1);
+    GPIO_write_high(&PORTB, servo1);
+    _delay_ms(1.5); // Wait 1 ms
+    GPIO_write_low(&PORTB, servo2); 
+}  
+*/
 
 ISR(TIMER2_OVF_vect)
 {
-    GPIO_write_high(&PORTB, servo2);
-    _delay_ms(5); // Wait 1 ms
-    GPIO_write_low(&PORTB, servo2); 
-    _delay_ms(10); // Wait 1 ms     
+    no_of_overflows++;
+    if (no_of_overflows >= 20) { 
+        EIMSK |= (1 << INT0);
+        no_of_overflows = 0;
+    }
 }
+
+
+ISR(INT0_vect)
+{
+    GPIO_write_high(&PORTB, servo1);
+    _delay_ms(1); // Wait 1 ms
+    GPIO_write_low(&PORTB, servo1);
+}
+
 
 
 
