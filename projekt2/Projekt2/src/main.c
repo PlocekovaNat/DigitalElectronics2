@@ -118,7 +118,7 @@ ISR(TIMER0_OVF_vect)
     GPIO_write_low(&PORTB, servo2); 
 }  
 */
-
+/*
 ISR(TIMER2_OVF_vect)
 {
     no_of_overflows++;
