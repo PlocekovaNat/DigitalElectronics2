@@ -8,7 +8,6 @@
  /* Define pins for joystick ------------------------------------------*/
 #define Rx PC0 
 #define Ry PC1 
-#define SW PD2 
 
 /* Define pins for motor 1 ------------------------------------------*/
 #define servo1 PB1 
@@ -29,11 +28,10 @@
 
 /* Arduino world -----------------------------------------------------*/
 #include "Arduino.h"
-#define PB1 9
-#define PB2 10
-#define PC0 A0
-#define PC1 A1
-#define PD2 2
+#define PB1 9          // PWM source 1
+#define PB2 10         // PWM source 2
+#define PC0 A0         // Joystick: Rx pin
+#define PC1 A1         // Joystick: Ry pin
 
 /* Function definitions ----------------------------------------------*/
 /**********************************************************************
