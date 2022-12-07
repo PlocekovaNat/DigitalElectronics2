@@ -3,7 +3,12 @@
  *
  * ATmega328P (Arduino Uno), 16 MHz, PlatformIO
  * 
- * 
+ *
+ 
+ /* Define pins for joystick ------------------------------------------*/
+#define Rx PC0 
+#define Ry PC1 
+#define SW PD2 
 
 /* Define pins for motor 1 ------------------------------------------*/
 #define servo1 PB1 
@@ -26,6 +31,9 @@
 #include "Arduino.h"
 #define PB1 9
 #define PB2 10
+#define PC0 A0
+#define PC1 A1
+#define PD2 2
 
 /* Function definitions ----------------------------------------------*/
 /**********************************************************************
@@ -52,12 +60,21 @@ int main(void)
     // Set prescaler to 33 ms and enable overflow interrupt
     TIM0_overflow_16ms();
     TIM0_overflow_interrupt_enable();
-
-
+    TIM1_overflow_33ms();
+    TIM1_overflow_interrupt_enable();
     TIM2_overflow_1ms();
     TIM2_overflow_interrupt_enable();
-
-
+    
+        /* -----------------------------Joystick-----------------------------------*/
+    // Configure Analog-to-Digital Convertion unit
+    // Select ADC voltage reference to "AVcc with external capacitor at AREF pin"
+    ADMUX = ADMUX |  (1<<REFS0);
+    // Enable ADC module
+    ADCSRA |= (1<<ADEN); // into the variable ADCSRA counting a new value
+    // Enable conversion complete interrupt
+    ADCSRA |= (1<<ADIE);
+    // Set clock prescaler to 128
+    ADCSRA |= (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
 
     // Enables interrupts by setting the global interrupt mask
     sei();
@@ -94,7 +111,7 @@ ISR(TIMER1_OVF_vect)
 }
 }
 */
-/*
+/* POTREBA PEROBIT NA PWM GENERATOR !!!
 ISR(TIMER0_OVF_vect)
 {
     //GPIO_mode_output(&DDRB, servo1);
@@ -112,13 +129,94 @@ ISR(TIMER2_OVF_vect)
         no_of_overflows = 0;
     }
 }
+*/
 
-
-ISR(INT0_vect)
+/* Interrupt service routines ----------------------------------------*/
+/**********************************************************************
+ * Function: Timer/1 overflow interrupt
+ * Purpose:  Use single conversion mode and start conversion every 33 ms.
+ **********************************************************************/
+ISR(TIMER1_OVF_vect)
 {
-    GPIO_write_high(&PORTB, servo1);
-    _delay_ms(1); // Wait 1 ms
-    GPIO_write_low(&PORTB, servo1);
+    // Start ADC conversion
+    ADCSRA |= (1<<ADSC);
+}
+
+/**********************************************************************
+ * Function: ADC complete interrupt
+ * Purpose:  Display converted value on LCD screen.
+ **********************************************************************/
+ISR(ADC_vect)
+{
+    uint16_t x, y;   // Set variables x, y as 16-bit integer
+    char string[4];  // String for converted numbers by itoa()
+
+    // Read x value ----------------------------------------------------------
+    // Note that, register pair ADCH and ADCL can be read as a 16-bit value ADC
+    // Select input channel ADC1 (voltage divider pin)
+    uint8_t channel = ADMUX & 0b00001111; // Get last 4 bits from ADMUX
+    if (channel == 0)
+    {
+    x = ADC;    // Get ADC value
+
+    if ((x<411)|(x>611))
+    {
+        if(x<411)
+        {
+            lcd_gotoxy(h, v);
+            lcd_puts(" ");
+            if (v == 1){
+                v--;
+            }
+            lcd_gotoxy(h, v);
+            itoa(ch, string, 10);
+            lcd_puts(string);
+        }
+        else if(x>611)
+        {
+            lcd_gotoxy(h, v);
+            lcd_puts(" ");
+            if (v == 0){
+                v++;
+            }
+            lcd_gotoxy(h, v);
+            itoa(ch, string, 10);
+            lcd_puts(string);
+        }
+    }
+    ADMUX = ADMUX & ~(1<<MUX3 | 1<<MUX2 | 1<<MUX1); ADMUX |= (1<<MUX0) ;    // Change ADMUX to 1
+    }
+
+    else if (channel == 1)
+    {
+        // Read y value ----------------------------------------------------------
+        // Note that, register pair ADCH and ADCL can be read as a 16-bit value ADC
+        y = ADC;    // Get ADC value
+
+        if(y<411)
+        {
+            lcd_gotoxy(h, v);
+            lcd_puts(" ");
+            if (h < 15){
+                h++;
+            }
+            lcd_gotoxy(h, v);
+            itoa(ch, string, 10);
+            lcd_puts(string);
+        }
+        else if(y>611)
+        {
+            lcd_gotoxy(h, v);
+            lcd_puts(" ");
+            if (h > 0){
+                h--;
+            }
+            lcd_gotoxy(h, v);
+            itoa(ch, string, 10);
+            lcd_puts(string);
+        }
+        ADMUX = ADMUX & ~(1<<MUX3 | 1<<MUX2 | 1<<MUX1 | 1<<MUX0);   // Change ADMUX to 0
+        }
 }
 
 
