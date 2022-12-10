@@ -1,4 +1,4 @@
-# Project 2
+# Projekt 2
 
 Generovanie PWM signálu. Aplikácia dvoch alebo viacerých Servo motorov SG90.
 
