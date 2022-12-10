@@ -46,7 +46,7 @@ Pomocou nastavenia registrov a prerušenia TIMER1_ovf_vect nastavujeme generovan
 
 ![Vypocty](images/vypocty.jpeg)
 
-Obr. 1 - Výpočty hodnôt použitých pri nastavení generovania PWM signálu
+Obr. 2 - Výpočty hodnôt použitých pri nastavení generovania PWM signálu
 ## Video
 
 Insert a link to a short video with your practical implementation example (1-3 minutes, e.g. on YouTube).
