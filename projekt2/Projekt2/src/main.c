@@ -4,18 +4,14 @@
  * ATmega328P (Arduino Uno), 16 MHz, PlatformIO
  * 
  *
- 
- /* Define pins for joystick ------------------------------------------*/
-#define Rx PC0 
-#define Ry PC1 
-
 /* Define pins for motor 1 ------------------------------------------*/
 #define servo1 PB1 
 
 /* Define pins for motor 2 ---------------------------------------------*/
 #define servo2 PB2
 
-#define SHORT_DELAY 0.5 // Delay in milliseconds
+/* Define pins for button ---------------------------------------------*/
+#define BUTTON1 PB0          // Button 1
 
 /* Includes ----------------------------------------------------------*/
 #include <avr/io.h>         // AVR device-specific IO definitions
@@ -23,62 +19,60 @@
 #include <util/delay.h>     // Functions for busy-wait delay loops
 #include <gpio.h>           // GPIO library for AVR-GCC
 #include "timer.h"          // Timer library for AVR-GCC
-#include <lcd.h>            // Peter Fleury's LCD library
 #include <stdlib.h>         // C library. Needed for number conversions
 
 /* Arduino world -----------------------------------------------------*/
 #include "Arduino.h"
 #define PB1 9          // PWM source 1
 #define PB2 10         // PWM source 2
-#define PC0 A0         // Joystick: Rx pin
-#define PC1 A1         // Joystick: Ry pin
+#define PD2 2          // Button 1
 
-/* Function definitions ----------------------------------------------*/
-/**********************************************************************
- * Function: Main function where the program execution begins
- * Purpose:  Update stopwatch value on LCD screen when 8-bit 
- *           Timer/Counter2 overflows.
- * Returns:  none
- **********************************************************************/
-// Define global variables for position
-uint8_t no_of_overflows = 0;
+/* Define parameters for servo ---------------------------------------------------------*/
+# define ZERO_ANGLE 124
+# define ANGLE_180 260
+# define SHORT_DELAY 2000 // Delay in milliseconds
+
+volatile uint32_t servo1_position = ANGLE_180;
+volatile uint32_t servo2_position = ANGLE_180;
+volatile uint8_t MOVE = 0;
 
 int main(void)
 {
-    /* -------------------------Initialize display-----------------------------*/
-    lcd_init(LCD_DISP_ON_CURSOR);
-    
-    /* ----------------------------- */
-    // GPIO_mode_output(&DDRB, servo1);
-    GPIO_mode_output(&DDRB, servo2);
-
-
-    /* -----------------------------Timer for SERVO 1-----------------------------------*/
-    // Configure 16-bit Timer/Counter1 to start ADC conversion
-    // Set prescaler to 33 ms and enable overflow interrupt
+    /* ----------------------------- Timer for SERVO 1 ---------------------------------*/
+    // Configure 8-bit Timer/Counter0 to control servo motors
+    // Set prescaler to 16 ms and enable overflow interrupt
     TIM0_overflow_16ms();
     TIM0_overflow_interrupt_enable();
-    TIM1_overflow_33ms();
-    TIM1_overflow_interrupt_enable();
-    TIM2_overflow_1ms();
-    TIM2_overflow_interrupt_enable();
+
+    /* ------------------------- Set pins with gpio library ----------------------------*/
+    GPIO_mode_output(&DDRB, servo1);        // First servo motor
+    GPIO_mode_output(&DDRB, servo2);        // Second servo motor
+    GPIO_mode_input_pullup(&DDRB,BUTTON1);  // Button with enabled pull-up resistor
+
+    // Set 10. waveform generation mode (1010)
+    TCCR1A |= (1 << WGM11);                  
+    TCCR1B |= (1 << WGM13);
+
+    // Set compare output mode
+    TCCR1A |= (1 << COM0A1) | (1 << COM0B1); 
+
+     // Set TOP value
+    ICR1 = 2500;
+                         
+    // Set duty cycle
+    OCR1A = servo1_position;
+    OCR1B = servo2_position;
     
-        /* -----------------------------Joystick-----------------------------------*/
-    // Configure Analog-to-Digital Convertion unit
-    // Select ADC voltage reference to "AVcc with external capacitor at AREF pin"
-    ADMUX = ADMUX |  (1<<REFS0);
-    // Enable ADC module
-    ADCSRA |= (1<<ADEN); // into the variable ADCSRA counting a new value
-    // Enable conversion complete interrupt
-    ADCSRA |= (1<<ADIE);
-    // Set clock prescaler to 128
-    ADCSRA |= (1<<ADPS2) | (1<<ADPS1) | (1<<ADPS0);
+    // Set prescaler to 64
+    TCCR1B |= (1 << CS11) | (1 << CS10 ); 
+
+    PCICR |= (1<<PCIE0);                    // Any change of any enable PCINT[7:0] pins will cause an interrupt
+    PCMSK0 |= (1<<PCINT0);                  // Enable PCINT0 change interrupt  
+    _delay_ms(SHORT_DELAY); // Wait 2 s
 
     // Enables interrupts by setting the global interrupt mask
     sei();
-
-    EIMSK |= (1 << INT0);                   // External interrupt mask register - enable INT0 bit   
-
+    
     // Infinite loop
     while (1)
     {
@@ -96,125 +90,77 @@ int main(void)
  * Function: Timer/1 overflow interrupt
  * Purpose:  Use single conversion mode and start conversion every 33 ms.
  **********************************************************************/
-/*
-ISR(TIMER1_OVF_vect)
-{
-    static uint8_t no_of_overflows = 0;
 
-    no_of_overflows++;
-    if (no_of_overflows >= 10) {
-        no_of_overflows = 0;
-        GPIO_write_high(&PORTB, servo1);
-
-}
-}
-*/
-/* POTREBA PEROBIT NA PWM GENERATOR !!!
 ISR(TIMER0_OVF_vect)
 {
-    //GPIO_mode_output(&DDRB, servo1);
-    GPIO_write_high(&PORTB, servo1);
-    _delay_ms(1.5); // Wait 1 ms
-    GPIO_write_low(&PORTB, servo2); 
-}  
-*/
-/*
-ISR(TIMER2_OVF_vect)
-{
-    no_of_overflows++;
-    if (no_of_overflows >= 20) { 
-        EIMSK |= (1 << INT0);
-        no_of_overflows = 0;
+    static uint8_t servo1_direction = 0;        // Default direction setup for first servo motor
+    static uint8_t servo2_direction = 0;        // Default direction setup for second servo motor
+    /* ------------- First servo motor  ------------------------------*/
+    if (MOVE == 0)                                                      
+    {
+        // Direction
+        if (servo1_position == ANGLE_180)       // Maximum value
+            {
+                servo1_direction = 1;           // Clockwise direction
+            }
+        else if (servo1_position == ZERO_ANGLE) // Minimum value
+            {
+                servo1_direction = 0;           // Counterclockwise direction
+            }
+        // Motion
+        if (servo1_direction == 0)
+        {
+            servo1_position += 2;               // Increment variable 
+        }
+        if (servo1_direction == 1)
+        {
+            servo1_position -= 2;               // Decrement variable  
+        }
+        OCR1A = servo1_position;                // Put value from variable into arduino register
+        }
+    /* ------------- Second servo motor  ------------------------------*/    
+    if (MOVE == 1) 
+    {
+        // Direction
+        if (servo2_position == ANGLE_180)       // Maximum value
+        {
+            servo2_direction = 1;               // Clockwise direction
+        }
+        else if (servo2_position == ZERO_ANGLE) // Minimum value
+        {
+            servo2_direction = 0;               // Counterclockwise direction
+        }
+        // Motion
+        if (servo2_direction == 0)
+        {
+            servo2_position += 2;               // Increment variable 
+        }
+        if (servo2_direction == 1)
+        {
+            servo2_position -= 2;               // Decrement variable   
+        }
+        OCR1B = servo2_position;                // Put value from variable into arduino register
     }
 }
-*/
-
-/* Interrupt service routines ----------------------------------------*/
 /**********************************************************************
- * Function: Timer/1 overflow interrupt
- * Purpose:  Use single conversion mode and start conversion every 33 ms.
+ * Function: Pin PB0 change interrupt
+ * Purpose:  Defines if the first or second servo motor should move
  **********************************************************************/
-ISR(TIMER1_OVF_vect)
+
+ISR(PCINT0_vect)
 {
-    // Start ADC conversion
-    ADCSRA |= (1<<ADSC);
-}
-
-/**********************************************************************
- * Function: ADC complete interrupt
- * Purpose:  Display converted value on LCD screen.
- **********************************************************************/
-ISR(ADC_vect)
-{
-    uint16_t x, y;   // Set variables x, y as 16-bit integer
-    char string[4];  // String for converted numbers by itoa()
-
-    // Read x value ----------------------------------------------------------
-    // Note that, register pair ADCH and ADCL can be read as a 16-bit value ADC
-    // Select input channel ADC1 (voltage divider pin)
-    uint8_t channel = ADMUX & 0b00001111; // Get last 4 bits from ADMUX
-    if (channel == 0)
+    uint8_t sw1 = GPIO_read(&PINB, BUTTON1);     // Read value from digital pin 8
+    if (sw1 == LOW)                              // Button is pushed down  
     {
-    x = ADC;    // Get ADC value
-
-    if ((x<411)|(x>611))
-    {
-        if(x<411)
-        {
-            lcd_gotoxy(h, v);
-            lcd_puts(" ");
-            if (v == 1){
-                v--;
-            }
-            lcd_gotoxy(h, v);
-            itoa(ch, string, 10);
-            lcd_puts(string);
+        if (MOVE == 1) 
+        { 
+            MOVE = 0;                            
         }
-        else if(x>611)
-        {
-            lcd_gotoxy(h, v);
-            lcd_puts(" ");
-            if (v == 0){
-                v++;
-            }
-            lcd_gotoxy(h, v);
-            itoa(ch, string, 10);
-            lcd_puts(string);
+        else if (MOVE == 0) 
+        { 
+            MOVE = 1;
         }
-    }
-    ADMUX = ADMUX & ~(1<<MUX3 | 1<<MUX2 | 1<<MUX1); ADMUX |= (1<<MUX0) ;    // Change ADMUX to 1
-    }
-
-    else if (channel == 1)
-    {
-        // Read y value ----------------------------------------------------------
-        // Note that, register pair ADCH and ADCL can be read as a 16-bit value ADC
-        y = ADC;    // Get ADC value
-
-        if(y<411)
-        {
-            lcd_gotoxy(h, v);
-            lcd_puts(" ");
-            if (h < 15){
-                h++;
-            }
-            lcd_gotoxy(h, v);
-            itoa(ch, string, 10);
-            lcd_puts(string);
-        }
-        else if(y>611)
-        {
-            lcd_gotoxy(h, v);
-            lcd_puts(" ");
-            if (h > 0){
-                h--;
-            }
-            lcd_gotoxy(h, v);
-            itoa(ch, string, 10);
-            lcd_puts(string);
-        }
-        ADMUX = ADMUX & ~(1<<MUX3 | 1<<MUX2 | 1<<MUX1 | 1<<MUX0);   // Change ADMUX to 0
-        }
+    } 
 }
 
 
