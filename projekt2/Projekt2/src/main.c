@@ -23,17 +23,14 @@
 
 /* Arduino world -----------------------------------------------------*/
 #include "Arduino.h"
-#define PB1 9          // PWM source 1
-#define PB2 10         // PWM source 2
-#define PD2 2          // Button 1
 
 /* Define parameters for servo ---------------------------------------------------------*/
 # define ZERO_ANGLE 124
-# define ANGLE_180 260
+# define ANGLE_90 260
 # define SHORT_DELAY 2000 // Delay in milliseconds
 
-volatile uint32_t servo1_position = ANGLE_180;
-volatile uint32_t servo2_position = ANGLE_180;
+volatile uint32_t servo1_position = ANGLE_90;
+volatile uint32_t servo2_position = ANGLE_90;
 volatile uint8_t MOVE = 0;
 
 int main(void)
@@ -99,7 +96,7 @@ ISR(TIMER0_OVF_vect)
     if (MOVE == 0)                                                      
     {
         // Direction
-        if (servo1_position == ANGLE_180)       // Maximum value
+        if (servo1_position == ANGLE_90)       // Maximum value
             {
                 servo1_direction = 1;           // Clockwise direction
             }
@@ -122,7 +119,7 @@ ISR(TIMER0_OVF_vect)
     if (MOVE == 1) 
     {
         // Direction
-        if (servo2_position == ANGLE_180)       // Maximum value
+        if (servo2_position == ANGLE_90)       // Maximum value
         {
             servo2_direction = 1;               // Clockwise direction
         }
@@ -162,7 +159,6 @@ ISR(PCINT0_vect)
         }
     } 
 }
-
 
 
 
