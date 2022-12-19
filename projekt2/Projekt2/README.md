@@ -44,18 +44,20 @@ Pomocou prerušenia PCINT0_vect, ktoré reaguje na stlačenie pripojeného tlač
 
 ![PCINT0_vect](images/PCINT0_vect.png)
 
-Obr. 4 - Vývojový diagram pre prerušenie PCINT0_vect
+Obr. 2 - Vývojový diagram pre prerušenie PCINT0_vect
 
-Pomocou nastavenia registrov a prerušenia TIMER1_ovf_vect nastavujeme generovanie PWM signálu, ktorý ovláda motory Servo SG90. Pre generovanie bol podľa technického listu použitý 10. mód. Hornú hranicu PWM singálu určuje ICR1, ktoreho hodnota pri 64-bitovéj preddeličke vychádza 2500. Vďaka tomu nastavujeme má vystupní signál 50 Hz. Střída generovaného signálu určuje, v akej polohe sa nachádza rameno motoru. Pomocou internetových článkov a následne empiricky boli určené hodnoty pre najnižšiu a najvyššiu polohu motora. Pre najnižšiu hodnotu t.j. 0° je potrebné, aby kladný impulz trval približne 1 ms, pre 90° 1,5ms a pre 180° je potrebný cca 2ms kladný impulz. Výpočty sú uvedené na priloženom obr. 2.
+Pomocou nastavenia registrov a prerušenia TIMER1_ovf_vect nastavujeme generovanie PWM signálu, ktorý ovláda motory Servo SG90. Pre generovanie bol podľa technického listu použitý 10. mód. Hornú hranicu PWM singálu určuje ICR1, ktorého hodnota pri 64-bitovéj preddeličke vychádza 2500. Vďaka tomuto nastaveniu má  vystupní signál 50 Hz. Střída generovaného signálu určuje, v akej polohe sa nachádza rameno motoru. Pomocou internetových článkov a následne empiricky boli určené hodnoty pre najnižšiu a najvyššiu polohu motora. Pre najnižšiu hodnotu t.j. 0° je potrebné, aby kladný impulz trval približne 1 ms, pre 90° 1,5ms a pre 180° je potrebný cca 2ms kladný impulz. Výpočty sú uvedené na priloženom obr. 4.
 
 ![Timer0_ovf](images/Timer0_ovf.png)
 
+Obr. 3 - Vývojový diagram pre prerušenie PCINT0_vect
+
 ![Vypocty](images/vypocty.jpeg)
 
-Obr. 2 - Výpočty hodnôt použitých pri nastavení generovania PWM signálu
+Obr. 4 - Výpočty hodnôt použitých pri nastavení generovania PWM signálu
 ## Video
 
-Insert a link to a short video with your practical implementation example (1-3 minutes, e.g. on YouTube).
+https://www.youtube.com/watch?v=eWjvdO4YbTk
 
 ## References
 
