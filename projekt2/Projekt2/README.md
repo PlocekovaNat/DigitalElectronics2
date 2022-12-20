@@ -40,6 +40,7 @@ Obr. 1 - Zapojenie v programe SimulIDE
 
 ## Popis softvéru
 Odkaz na samotný kód je v tomto linku: [main.c](https://github.com/PlocekovaNat/DigitalElectronics2/blob/main/projekt2/Projekt2/src/main.c).
+
 Pomocou prerušenia PCINT0_vect, ktoré reaguje na stlačenie pripojeného tlačidla meníme hodnotu parametru MOVE a tým určujeme, ktorý motor sa bude pohybovať.
 
 ![PCINT0_vect](images/PCINT0_vect.png)
